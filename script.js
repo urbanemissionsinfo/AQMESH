@@ -2,10 +2,21 @@
 
   // ---------- Map setup ----------
   const map = L.map('map', { zoomControl:true }).setView([22.9734, 78.6569], 5);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  
+  const lightCarto = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
     maxZoom: 19
   }).addTo(map);
+
+  const satelliteEsri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+    maxZoom: 19
+  });
+
+  const openStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+    maxZoom: 19
+  });
 
   const drawnItems = new L.FeatureGroup();
   map.addLayer(drawnItems);
@@ -13,11 +24,61 @@
   const gridLayer = new L.FeatureGroup();
   map.addLayer(gridLayer);
 
-  // Updated draw color to match the UE palette's secondary accent (orange warning)
+  // Group base layers & overlays for switcher control
+  const baseLayers = {
+    "Light Minimal": lightCarto,
+    "Satellite Imagery": satelliteEsri,
+    "Street Map": openStreetMap
+  };
+
+  const overlays = {
+    "Drawn BBox": drawnItems,
+    "Grid Preview": gridLayer
+  };
+
+  // Add Layer Control widget safely after layers are created
+  L.control.layers(baseLayers, overlays, { position: 'topright' }).addTo(map);
+
+  // Track active base layer to dynamically adjust styles
+  let isSatelliteActive = false;
+
+  map.on('baselayerchange', function(e) {
+    isSatelliteActive = (e.layer === satelliteEsri);
+    const bbox = getBbox();
+    if (bbox) {
+      drawBboxRectangleFromInputs(bbox);
+    }
+    if (currentCells) {
+      renderGridPreview(currentCells, currentCells.length, 1);
+    }
+  });
+
+  // ---------- Prominent Draw Button Integration ----------
+  const drawRectBtn = document.getElementById('drawRectBtn');
+
+  if (drawRectBtn) {
+    drawRectBtn.addEventListener('click', function() {
+      for (let id in drawControl._toolbars.draw._modes) {
+        if (drawControl._toolbars.draw._modes[id].handler instanceof L.Draw.Rectangle) {
+          drawControl._toolbars.draw._modes[id].handler.enable();
+          break;
+        }
+      }
+    });
+  }
+
+  // Dynamic draw control options based on active layer
   const drawControl = new L.Control.Draw({
     draw: {
       polygon:false, polyline:false, circle:false, circlemarker:false, marker:false,
-      rectangle: { shapeOptions: { color:'#b84c00', weight:2, fillOpacity:0.06 } }
+      rectangle: { 
+        shapeOptions: { 
+          get color() { return isSatelliteActive ? '#ffcc00' : '#b84c00'; }, 
+          weight: 2.5, 
+          fillOpacity: 0.1, 
+          opacity: 0.9 
+        } 
+      }
     },
     edit: { featureGroup: drawnItems, remove:false }
   });
@@ -46,7 +107,6 @@
   const clearBtn = document.getElementById('clearBbox');
   
   const downloadBboxGeojsonBtn = document.getElementById('downloadBboxGeojson');
-  const uploadBboxFileEl = document.getElementById('uploadBboxFile');
 
   const unitDegBtn = document.getElementById('unitDeg');
   const unitKmBtn  = document.getElementById('unitKm');
@@ -70,10 +130,10 @@
 
   // ---------- Helpers ----------
   function setBboxInputs(swLng, swLat, neLng, neLat){
-    swLngEl.value = swLng.toFixed(5);
-    swLatEl.value = swLat.toFixed(5);
-    neLngEl.value = neLng.toFixed(5);
-    neLatEl.value = neLat.toFixed(5);
+    swLngEl.value = swLng.toFixed(2);
+    swLatEl.value = swLat.toFixed(2);
+    neLngEl.value = neLng.toFixed(2);
+    neLatEl.value = neLat.toFixed(2);
   }
 
   function getBbox(){
@@ -107,9 +167,10 @@
 
   function drawBboxRectangleFromInputs(bbox){
     drawnItems.clearLayers();
+    const strokeColor = isSatelliteActive ? '#ffcc00' : '#b84c00';
     const rect = L.rectangle(
       [[bbox.swLat, bbox.swLng],[bbox.neLat, bbox.neLng]],
-      { color:'#b84c00', weight:2, fillOpacity:0.06 }
+      { color: strokeColor, weight: 2.5, fillOpacity: 0.1, opacity: 0.9 }
     );
     drawnItems.addLayer(rect);
   }
@@ -140,7 +201,7 @@
       return;
     }
 
-    topbarStatus.textContent = `BBox: ${bbox.swLng.toFixed(3)}, ${bbox.swLat.toFixed(3)} → ${bbox.neLng.toFixed(3)}, ${bbox.neLat.toFixed(3)}`;
+    topbarStatus.textContent = `BBox: ${bbox.swLng.toFixed(2)}, ${bbox.swLat.toFixed(2)} → ${bbox.neLng.toFixed(2)}, ${bbox.neLat.toFixed(2)}`;
 
     const resDeg = resolutionInDegrees(bbox);
     if (!resDeg){
@@ -217,10 +278,11 @@
     const total = cells.length;
     if (total > 4000) return;
     
+    const strokeColor = isSatelliteActive ? '#00ff66' : '#164D12';
     cells.forEach(c => {
       L.rectangle(
         [[c.sw_lat, c.sw_long],[c.ne_lat, c.ne_long]],
-        { color:'#164D12', weight:0.6, fillOpacity:0.03, interactive:false }
+        { color: strokeColor, weight: isSatelliteActive ? 1 : 0.6, opacity: 0.8, fillOpacity: 0.03, interactive:false }
       ).addTo(gridLayer);
     });
   }
@@ -264,6 +326,40 @@
         }
       }))
     };
+  }
+
+  // ---------- KML Export Helper ----------
+  function toKML(cells){
+    let kml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    kml += '<kml xmlns="http://www.opengis.net/kml/2.2">\n';
+    kml += '<Document>\n';
+    kml += '<name>Grid Cells</name>\n';
+    
+    cells.forEach(c => {
+      kml += '<Placemark>\n';
+      kml += `  <name>Cell Col ${c.ncol}, Row ${c.nrow}</name>\n`;
+      kml += '  <ExtendedData>\n';
+      kml += `    <Data name="ncol"><value>${c.ncol}</value></Data>\n`;
+      kml += `    <Data name="nrow"><value>${c.nrow}</value></Data>\n`;
+      kml += `    <Data name="center_long"><value>${c.center_long.toFixed(6)}</value></Data>\n`;
+      kml += `    <Data name="center_lat"><value>${c.center_lat.toFixed(6)}</value></Data>\n`;
+      kml += `    <Data name="area_km2"><value>${c.area_km2.toFixed(4)}</value></Data>\n`;
+      kml += '  </ExtendedData>\n';
+      kml += '  <Polygon>\n';
+      kml += '    <outerBoundaryIs>\n';
+      kml += '      <LinearRing>\n';
+      kml += '        <coordinates>\n';
+      kml += `          ${c.sw_long},${c.sw_lat},0 ${c.ne_long},${c.sw_lat},0 ${c.ne_long},${c.ne_lat},0 ${c.sw_long},${c.ne_lat},0 ${c.sw_long},${c.sw_lat},0\n`;
+      kml += '        </coordinates>\n';
+      kml += '      </LinearRing>\n';
+      kml += '    </outerBoundaryIs>\n';
+      kml += '  </Polygon>\n';
+      kml += '</Placemark>\n';
+    });
+    
+    kml += '</Document>\n';
+    kml += '</kml>';
+    return kml;
   }
 
   function bboxToGeoJSON(bbox) {
@@ -321,75 +417,11 @@
     downloadBlob(JSON.stringify(bboxToGeoJSON(bbox), null, 2), 'bounding_box.geojson', 'application/geo+json');
   });
 
-  uploadBboxFileEl.addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+  const downloadKmlBtn = document.getElementById('downloadKml');
 
-    const reader = new FileReader();
-    reader.onload = function(event) {
-      try {
-        const data = JSON.parse(event.target.result);
-        let features = [];
-        
-        if (data.type === 'FeatureCollection' && data.features) {
-          features = data.features;
-        } else if (data.type === 'Feature') {
-          features = [data];
-        } else if (data.type === 'Polygon' || data.type === 'MultiPolygon') {
-          features = [{ geometry: data }];
-        }
-
-        if (features.length === 0) {
-          throw new Error('Invalid GeoJSON structure: No valid geometries found.');
-        }
-
-        let minLng = Infinity, maxLng = -Infinity, minLat = Infinity, maxLat = -Infinity;
-        let coordFound = false;
-
-        features.forEach(feat => {
-          if (!feat.geometry || !feat.geometry.coordinates) return;
-          const geom = feat.geometry;
-          const coords = geom.coordinates;
-
-          const processRing = (ring) => {
-            ring.forEach(pt => {
-              const lng = pt[0];
-              const lat = pt[1];
-              if (typeof lng === 'number' && typeof lat === 'number' && !isNaN(lng) && !isNaN(lat)) {
-                if (lng < minLng) minLng = lng;
-                if (lng > maxLng) maxLng = lng;
-                if (lat < minLat) minLat = lat;
-                if (lat > maxLat) maxLat = lat;
-                coordFound = true;
-              }
-            });
-          };
-
-          if (geom.type === 'Polygon') {
-            coords.forEach(ring => processRing(ring));
-          } else if (geom.type === 'MultiPolygon') {
-            coords.forEach(polygon => {
-              polygon.forEach(ring => processRing(ring));
-            });
-          }
-        });
-
-        if (!coordFound || [minLng, maxLng, minLat, maxLat].some(v => !isFinite(v))) {
-          throw new Error('Could not calculate valid bounds from uploaded geometries.');
-        }
-
-        setBboxInputs(minLng, minLat, maxLng, maxLat);
-        onBboxChanged();
-        showError(false);
-
-      } catch (err) {
-        showError('Failed to parse uploaded file: ' + err.message);
-      } finally {
-        uploadBboxFileEl.value = '';
-      }
-    };
-
-    reader.readAsText(file);
+  downloadKmlBtn.addEventListener('click', function(){
+    if (!currentCells) return;
+    downloadBlob(toKML(currentCells), 'grid.kml', 'application/vnd.google-earth.kml+xml');
   });
 
   unitDegBtn.addEventListener('click', function(){

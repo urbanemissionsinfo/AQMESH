@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AirshedMESH · Grid Generator</title>
+<title>Airshed MESH Generator</title>
 <link rel="icon" href="https://urbanemissions.info/wp-content/uploads/2016/04/cropped-Big_Grid_512-164D12-32x32.png" type="image/jpeg">
 <!-- External CSS & Fonts -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -17,7 +17,7 @@
 
   <header>
     <div class="logo">
-      AirshedMESH | Grid Generator<span>Urban Emissions Info</span>
+      Airshed MESH Generator<span>Urban Emissions Info</span>
     </div>
     <div class="toolbar">
       <div class="tif-status ready">
@@ -43,10 +43,11 @@
         <!-- Section 1: Bounding Box -->
         <section class="mp-widget">
           <h2 class="mp-title">1 · Bounding Box</h2>
-          <div class="bbox-upload-container" style="margin-top: 8px;">
+          <button id="drawRectBtn" class="btn primary-btn" style="background-color: #b84c00; color: white; margin-bottom: 8px;">Draw Rectangle on Map</button>
+          <!-- <div class="bbox-upload-container" style="margin-top: 8px;">
             <label for="uploadBboxFile" class="btn" style="cursor: pointer; display: inline-block;">Upload Bounding Box (GeoJSON)</label>
             <input type="file" id="uploadBboxFile" accept=".geojson,.json" style="display: none;" />
-          </div>
+          </div> -->
           <p class="mp-hint">Use the rectangle tool on the map, or type coordinates directly.</p>
           <div class="coord-grid">
             <label class="mp-lbl">SW Longitude
@@ -99,11 +100,13 @@
 
           <div style="margin-top:16px;">
             <button id="generateBtn" class="mp-calc-btn" disabled>Generate Grid Network</button>
+            <p class="error-msg" id="errorMsg" style="display:none;"></p>
             <div class="downloads" id="downloads" hidden>
               <button id="downloadCsv" class="btn">CSV</button>
               <button id="downloadGeojson" class="btn">GeoJSON</button>
+              <button id="downloadKml" class="btn">KML</button>
             </div>
-            <p class="error-msg" id="errorMsg" style="display:none;"></p>
+           
           </div>
         </section>
 
