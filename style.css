@@ -1,0 +1,400 @@
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+      /* UrbanEmissions.Info palette */
+      --bg:         #f5f6f4;
+      --surface:    #ffffff;
+      --border:     #dde0d8;
+      --accent:     #164D12;
+      --accent-mid: #2a7a24;
+      --accent-lt:  #e8f2e7;
+      --accent2:    #b84c00;
+      --accent2-lt: #fdf0e8;
+      --text:       #1a1e18;
+      --muted:      #6b7268;
+      --panel:      #f0f2ee;
+      --pop-bg:     #eaf4e9;
+      --pop-border: #b6d9b3;
+  }
+
+  body {
+      font-family: 'Source Serif 4', 'Georgia', serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-size: 15px;
+  }
+
+  /* ── HEADER ───────────────────────────────────────────────── */
+  header {
+      padding: 10px 20px;
+      border-bottom: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      z-index: 100;
+      flex-shrink: 0;
+  }
+
+  .logo {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+      font-family: 'Source Serif 4', serif;
+  }
+  .logo span { color: var(--accent); font-style: italic; }
+  .logo-dot {
+      width: 10px; height: 10px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2.5s infinite;
+      flex-shrink: 0;
+  }
+
+  @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.45; transform: scale(0.75); }
+  }
+
+  .tif-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 20px;
+      background: #fafbf9;
+      border-bottom: 1px solid var(--border);
+      font-family: 'Inter', 'Helvetica Neue', sans-serif;
+      font-size: 0.75rem;
+      color: var(--muted);
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+      border-radius: 4px;
+  }
+  .tif-status.ready { background: var(--accent-lt); color: var(--accent); border-bottom-color: var(--pop-border); }
+  .tif-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+      transition: background 0.3s ease;
+  }
+  .tif-status.ready .tif-dot { background: var(--accent); }
+
+  /* ── MAIN LAYOUT ──────────────────────────────────────────── */
+  .main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+  }
+
+  /* ── MAP WRAP ─────────────────────────────────────────────── */
+  .map-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+  }
+  #map { width: 100%; height: 100%; z-index: 1; background: #dfe7e3; }
+  .leaflet-tile { filter: none; }
+
+  .mode-indicator {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 1000;
+      background: var(--surface);
+      border: 1.5px solid var(--accent);
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem;
+      color: var(--accent);
+      background: var(--accent-lt);
+      pointer-events: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  /* ── SIDE PANEL ───────────────────────────────────────────── */
+  .side-panel {
+      width: 30%;
+      background: var(--panel);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+  }
+
+  .panel-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-family: 'Inter', 'Helvetica Neue', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+  }
+  .panel-header .badge {
+      background: var(--accent-lt);
+      color: var(--accent);
+      border: 1px solid var(--pop-border);
+      padding: 2px 9px;
+      border-radius: 20px;
+      font-size: 0.68rem;
+      font-weight: 600;
+  }
+
+  .console-output {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      font-family: 'Inter', 'Helvetica Neue', sans-serif;
+      font-size: 0.9rem;
+      line-height: 1.65;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+  }
+  .console-output::-webkit-scrollbar { width: 4px; }
+  .console-output::-webkit-scrollbar-track { background: transparent; }
+  .console-output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── CUSTOM WIDGETS (Adapting Source 1 needs into Source 2) ─ */
+  .mp-widget {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  }
+
+  .mp-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 12px;
+  }
+
+  .mp-hint {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+      line-height: 1.4;
+  }
+
+  .coord-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+  }
+  
+  .mp-lbl {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+  }
+
+  .mp-input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: all 0.15s ease;
+  }
+  .mp-input:focus {
+      border-color: var(--accent);
+      background: var(--surface);
+      box-shadow: 0 0 0 2px rgba(22,77,18,0.1);
+  }
+
+  .btn {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 7px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+      background: var(--surface);
+      color: var(--muted);
+      transition: all 0.15s ease;
+      letter-spacing: 0.02em;
+      width: 100%;
+      text-align: center;
+  }
+  .btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-lt);
+  }
+
+  .mp-calc-btn {
+      width: 100%;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 10px 12px;
+      border: 1.5px solid var(--accent);
+      border-radius: 4px;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      letter-spacing: 0.02em;
+  }
+  .mp-calc-btn:hover:not(:disabled) {
+      background: #0f3a0d;
+      border-color: #0f3a0d;
+  }
+  .mp-calc-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background: var(--muted);
+      border-color: var(--muted);
+  }
+
+  /* Unit Toggle */
+  .toggle-group {
+      display: flex;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 12px;
+  }
+  .toggle-btn {
+      flex: 1;
+      border: none;
+      background: var(--surface);
+      color: var(--muted);
+      padding: 7px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+  }
+  .toggle-btn.active {
+      background: var(--accent-lt);
+      color: var(--accent);
+      box-shadow: inset 0 0 0 1.5px var(--accent);
+  }
+
+  /* Stats Panel */
+  .log-entry {
+      padding: 10px 12px;
+      border-radius: 4px;
+      border: 1px solid var(--pop-border);
+      background: var(--pop-bg);
+  }
+  .stat-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      padding: 6px 0;
+      border-bottom: 1px dashed #b6d9b3;
+      font-family: 'Inter', sans-serif;
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-row span:first-child { color: var(--accent); font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-row span:last-child { font-weight: 700; color: var(--text); }
+
+  .downloads {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+  }
+
+  .error-msg {
+      color: var(--accent2);
+      background: var(--accent2-lt);
+      border: 1px solid #f5c9a8;
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-size: 0.72rem;
+      margin-top: 12px;
+      line-height: 1.4;
+  }
+
+  /* Diagram */
+  .numbering-diagram {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.3;
+  }
+  .grid3 {
+      display: grid;
+      grid-template-columns: repeat(3, 14px);
+      grid-template-rows: repeat(3, 14px);
+      gap: 2px;
+      flex-shrink: 0;
+  }
+  .grid3 div {
+      background: var(--accent-lt);
+      border: 1px solid var(--pop-border);
+      border-radius: 2px;
+  }
+  .grid3 div.origin {
+      background: var(--accent2);
+      border-color: #8b3a00;
+  }
+
+  /* Leaflet overrides */
+  .leaflet-control-zoom {
+      border: 1.5px solid var(--border) !important;
+      border-radius: 6px !important;
+      overflow: hidden;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.1) !important;
+  }
+  .leaflet-control-zoom a {
+      background: var(--surface) !important;
+      color: var(--text) !important;
+      border-color: var(--border) !important;
+      font-family: 'Inter', sans-serif !important;
+      font-weight: 600 !important;
+  }
+  .leaflet-control-zoom a:hover {
+      background: var(--accent-lt) !important;
+      color: var(--accent) !important;
+  }
+  .leaflet-control-attribution { background: rgba(255,255,255,0.85) !important; color: var(--muted) !important; font-size: 0.85rem !important; }
+  .leaflet-control-attribution a { color: var(--accent) !important; }
+
+  @media (max-width: 700px) {
+      .main { flex-direction: column; overflow: visible; height: auto; }
+      body { height: auto; min-height: 100vh; overflow: auto; }
+      #map { height: 100vw; min-height: 300px; max-height: 400px; flex: none; width: 100%; }
+      .side-panel { width: 100%; border-left: none; border-top: 2px solid var(--border); flex: none; overflow: visible; }
+      .console-output { overflow-y: visible; max-height: none; }
+  }
